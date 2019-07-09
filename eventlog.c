@@ -24,6 +24,8 @@
 
 #define	TIMEFRAME	86400
 
+static time_t curr_timeframe;
+
 extern char *__progname;
 
 int
@@ -57,12 +59,18 @@ main(int argc, char *argv[])
 			errx(1, "received bogus report event");
 		
 		timeframe = ctime - (ctime % TIMEFRAME);
-		if (fp == NULL) {
-			(void)snprintf(pathname, sizeof pathname, "%s/%lld",
-			    argv[1], timeframe);
-			if ((fp = fopen(pathname, "a+")) == NULL)
-				err(1, "fopen");
+		if (curr_timeframe == 0 || curr_timeframe != timeframe) {
+			if (fp)
+				fclose(fp);
+			else {
+				(void)snprintf(pathname, sizeof pathname, "%s/%lld",
+				    argv[1], timeframe);
+				if ((fp = fopen(pathname, "a+")) == NULL)
+					err(1, "fopen");
+				curr_timeframe = timeframe;
+			}
 		}
+
 		fwrite(line, linelen, 1, fp);
 		fflush(fp);
 	}
