@@ -75,8 +75,62 @@ print_kv(FILE *fp, char *line, size_t linelen)
 	fprintf(fp, "event=%s ", event);
 	fprintf(fp, "session=%s ", session);
 
-	if (strcmp(event, "link-connect") == 0)
-		fprintf(fp, "line: %s", line);
+	if (strcmp(event, "link-connect") == 0) {
+		char *rdns;
+		char *fcrdns;
+		char *src_addr;
+		char *src_port;
+		char *dst_addr;
+		char *dst_port;
+
+		rdns = line;
+		line[strcspn(line, "|")] = '\0';
+		line += strlen(line) + 1;
+
+		fcrdns = line;
+		line[strcspn(line, "|")] = '\0';
+		line += strlen(line) + 1;
+
+		src_addr = line;
+		line[strcspn(line, ":")] = '\0';
+		line += strlen(line) + 1;
+
+		src_port = line;
+		line[strcspn(line, "|")] = '\0';
+		line += strlen(line) + 1;
+
+		dst_addr = line;
+		line[strcspn(line, ":")] = '\0';
+		line += strlen(line) + 1;
+
+		dst_port = line;
+
+		fprintf(fp, "rdns=%s fcrdns=%s src_addr=%s dst_addr=%s",
+		    rdns, fcrdns, src_addr, dst_addr);
+
+		if (*dst_port != '/') {
+			fprintf(fp, " src_port=%s dst_port=%s",
+			    src_port, dst_port);
+		} else {
+			fprintf(fp, " src_port=\"");
+			while (*src_port) {
+				if (*src_port == '"')
+					fprintf(fp, "\\");
+				fprintf(fp, "%c", *src_port);
+				src_port++;
+			}
+			fprintf(fp, "\"");
+
+			fprintf(fp, " dst_port=\"");
+			while (*dst_port) {
+				if (*dst_port == '"')
+					fprintf(fp, "\\");
+				fprintf(fp, "%c", *dst_port);
+				dst_port++;
+			}
+			fprintf(fp, "\"");
+		}
+	}
 	else if (strcmp(event, "link-identify") == 0)
 		fprintf(fp, "helo-name=%s", line);
 	else if (strcmp(event, "link-tls") == 0)
