@@ -282,6 +282,7 @@ main(int argc, char *argv[])
 		errx(1, "usage: %s /path/to/directory", __progname);
 
 	printf("register|report|smtp-in|*\n");
+	printf("register|report|smtp-out|*\n");
 	printf("register|ready\n");
 	fflush(stdout);
 
