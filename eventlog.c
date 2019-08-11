@@ -46,7 +46,7 @@ print_kv(FILE *fp, char *line, size_t linelen)
 	char *event;
 	char *session;
 
-	if (strncmp(line, "report|1|", 9) != 0)
+	if (strncmp(line, "report|0|", 9) != 0)
 		return;
 	line[strcspn(line, "\n")] = '\0';
 
@@ -281,13 +281,19 @@ main(int argc, char *argv[])
 	if (argc != 1)
 		errx(1, "usage: %s /path/to/directory", __progname);
 
+	while ((linelen = getline(&line, &linesize, stdin)) != -1) {
+		line[strcspn(line, "\n")] = '\0';
+		if (strcmp("config|ready", line) == 0)
+			break;
+	}
+
 	printf("register|report|smtp-in|*\n");
 	printf("register|report|smtp-out|*\n");
 	printf("register|ready\n");
 	fflush(stdout);
 
 	while ((linelen = getline(&line, &linesize, stdin)) != -1) {
-		if (strncmp("report|1|", line, 9) != 0)
+		if (strncmp("report|0|", line, 9) != 0)
 			errx(1, "received bogus report event");
 
 		errno = 0;
