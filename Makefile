@@ -4,7 +4,7 @@ PROG=	filter-eventlog
 
 #BINMODE?=0550
 
-BINDIR=	/usr/libexec
+BINDIR=	/usr/local/libexec/smtpd
 NOMAN=
 
 CFLAGS+=	-fstack-protector-all

@@ -46,8 +46,6 @@ print_kv(FILE *fp, char *line, size_t linelen)
 	char *event;
 	char *session;
 
-	if (strncmp(line, "report|0|", 9) != 0)
-		return;
 	line[strcspn(line, "\n")] = '\0';
 
 	
@@ -262,6 +260,8 @@ main(int argc, char *argv[])
 	char *ep;
 	int ch;
 	void (*print)(FILE *fp, char *line, size_t linelen) = print_raw;
+	int smtp_in = 0;
+	int smtp_out = 0;
 
 	while ((ch = getopt(argc, argv, "t:")) != -1) {
 		switch (ch) {
@@ -283,21 +283,24 @@ main(int argc, char *argv[])
 
 	while ((linelen = getline(&line, &linesize, stdin)) != -1) {
 		line[strcspn(line, "\n")] = '\0';
+		if (strcmp("config|subsystem|smtp-in", line) == 0)
+			smtp_in = 1;
+		if (strcmp("config|subsystem|smtp-out", line) == 0)
+			smtp_out = 1;
 		if (strcmp("config|ready", line) == 0)
 			break;
 	}
 
-	printf("register|report|smtp-in|*\n");
-	printf("register|report|smtp-out|*\n");
+	if (smtp_in)
+		printf("register|report|smtp-in|*\n");
+	if (smtp_out)
+		printf("register|report|smtp-out|*\n");
 	printf("register|ready\n");
 	fflush(stdout);
 
 	while ((linelen = getline(&line, &linesize, stdin)) != -1) {
-		if (strncmp("report|0|", line, 9) != 0)
-			errx(1, "received bogus report event");
-
 		errno = 0;
-		ctime = strtoul(line+9, &ep, 10);
+		ctime = strtoul(line+11, &ep, 10);
 		if (line[9] == '\0' || *ep != '.')
 			errx(1, "received bogus report event");
 		if (errno == ERANGE)
